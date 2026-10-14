@@ -14,10 +14,18 @@ class Evenement extends Model
         'convocation_envoyee'=>'boolean',
     ];
 
-    //Relations
-    public function joueurs() {
-        return $this->belongsToMany(Joueurs::class,'participation')
-                    ->withPivot('present','response')
-                    ->withTimestamps();
+   /**
+     * Relation Many-to-Many avec les Joueurs via la table participations
+     */
+    public function joueurs()
+    {
+        return $this->belongsToMany(
+            Joueur::class,         
+            'participations',      
+            'evenement_id',        
+            'joueur_id'             
+        )
+        ->withPivot('present', 'reponse') 
+        ->withTimestamps(); 
     }
 }

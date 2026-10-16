@@ -8,34 +8,43 @@ use Illuminate\Database\Eloquent\Model;
 class Joueur extends Model
 {
     use HasFactory;
-    protected $fillable =[
+
+    protected $fillable = [
         'nom',
         'prenom',
         'date_naissance',
         'categorie',
-        'photo',
+        'photo_path',
         'user_id',
     ];
 
+    // Date_naissance devient un objet Carbon → on peut faire ->age directement
+    protected $casts = [
+        'date_naissance' => 'date',
+    ];
 
-    // Relation : Un Joueur appartient à un Parent (User)
+    /**
+     * Un joueur est rattaché au compte PARENT via user_id.
+     */
     public function parent()
     {
-        return $this->belongsTo(\App\Models\User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Relation : Un Joueur a plusieurs Cotisations
+    /** Un joueur a plusieurs cotisations. */
     public function cotisations()
     {
-        return $this->hasMany(\App\Models\Cotisation::class);
+        return $this->hasMany(Cotisation::class);
     }
-    /**
-     * Relation N,N : Un joueur participe à plusieurs événements
-     */
+
+    /** Un joueur participe à plusieurs événements (via participations). */
     public function evenements()
     {
-        return $this->belongsToMany(Evenement::class, 'participations')
-                    ->withPivot('present', 'reponse')
-                    ->withTimestamps();
+        return $this->belongsToMany(
+            Evenement::class,
+            'participations',
+            'joueur_id',
+            'evenement_id'
+        )->withPivot('present', 'reponse')->withTimestamps();
     }
 }

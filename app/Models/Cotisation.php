@@ -9,7 +9,7 @@ class Cotisation extends Model
 {
     use HasFactory;
     protected $fillable =[
-        'joueur_id','montant','mois_concerne','statut','date_payement'
+        'joueur_id','montant','mois_concerne','statut','date_paiement'
     ];
 
     //Relations

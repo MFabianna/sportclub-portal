@@ -43,11 +43,11 @@ class ParticipationController extends Controller
     public function presence($evenement_id,$joueur_id) {
         Participation::updateOrCreate([
             'evenement_id'=>$evenement_id,
-            'joueuer_id'=>$joueur_id,
+            'joueur_id'=>$joueur_id,
         ],
         ['present'=>true,]        
         );
-        return redirect()->route('evenement.index')->with('sucess','Presence enregistrée!');
+        return redirect()->route('evenements.index')->with('success','Presence enregistrée!');
     }
 
 }

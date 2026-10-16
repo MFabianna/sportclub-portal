@@ -12,7 +12,7 @@ class CotisationController extends Controller
         // On récupère toutes les cotisations ET on charge les infos du joueur en même temps
         $cotisations = Cotisation::with('joueur')->get();
 
-        return view('cotisations', compact('cotisations'));
+        return view('cotisations.index', compact('cotisations'));
     }
 
     public function payer ($id){
@@ -21,6 +21,6 @@ class CotisationController extends Controller
             'statut'=> 'paye',
             'date_paiement'=> now(),
         ]);
-    return redirect()->route('cotisations')->with('success','Lacotisation a été payé avec succès!');
+    return redirect()->route('cotisations.index')->with('success','Lacotisation a été payé avec succès!');
     }
 }

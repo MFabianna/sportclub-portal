@@ -18,12 +18,12 @@ use App\Models\User;
 // Page d'accueil publique
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome');
 
 // ==========================================
 // ROUTES PROTÉGÉES (Il faut être connecté)
 // ==========================================
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
     // 0. Dashboard
     Route::get('/dashboard', function () {
@@ -35,37 +35,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // 2. Gestion des Joueurs
-    // Note : Si tu ajoutes des détails plus tard (ex: /joueurs/1), cette route couvrira tout
-    Route::prefix('joueurs')->name('joueurs.')->group(function () {
-        Route::get('/', [JoueurController::class, 'index'])->name('index');
-        // Exemple futur : Route::get('/{id}', [JoueurController::class, 'show'])->name('show');
-    });
-    
-    // Alias direct pour compatibilité avec ton ancien code si nécessaire
-    // Mais idéalement, utilise route('joueurs.index') dans tes vues maintenant
-    
-    // 3. Gestion des Cotisations
+    // 2. Gestion des Joueurs (CRUD complet via resource)
+    Route::resource('joueurs', JoueurController::class);
+
+    // 3. Gestion des Événements (CRUD complet via resource)
+    Route::resource('evenements', EvenementController::class);
+
+    // 4. Gestion des Cotisations (routes personnalisées)
     Route::prefix('cotisations')->name('cotisations.')->group(function () {
         Route::get('/', [CotisationController::class, 'index'])->name('index');
         Route::post('/{id}/payer', [CotisationController::class, 'payer'])->name('payer');
         Route::get('/{id}/recu', [CotisationController::class, 'recu'])->name('recu');
     });
 
-    // 4. Calendrier des Événements
-    Route::get('/evenements', [EvenementController::class, 'index'])->name('evenements.index');
-
-    // 5. Convocations (Actions POST)
-    Route::post('/participation/{evenement}/confirmer/{joueur}', [ParticipationController::class, 'confirmer'])->name('participations.confirmer');
-    Route::post('/participation/{evenement}/decliner/{joueur}', [ParticipationController::class, 'decliner'])->name('participations.decliner');
-    Route::post('/participation/{evenement}/presence/{joueur}', [ParticipationController::class, 'presence'])->name('participations.presence');
+    // 5. Convocations (Actions POST pour confirmer / décliner / présence)
+    Route::prefix('participations')->name('participations.')->group(function () {
+        Route::post('/{evenement}/confirmer/{joueur}', [ParticipationController::class, 'confirmer'])->name('confirmer');
+        Route::post('/{evenement}/decliner/{joueur}', [ParticipationController::class, 'decliner'])->name('decliner');
+        Route::post('/{evenement}/presence/{joueur}', [ParticipationController::class, 'presence'])->name('presence');
+    });
 
 });
 
 // Chargement des routes d'authentification Breeze (Login, Register, etc.)
 require __DIR__.'/auth.php';
 
-// 🔒 SÉCURITÉ DEV : Bouton magique uniquement en local
+// 🔒 SÉCURITÉ DEV : Connexion rapide admin (uniquement en local)
 if (app()->environment('local')) {
     Route::post('/dev-login', function () {
         $admin = User::where('email', 'admin@sportclub.com')->first();
@@ -73,6 +68,6 @@ if (app()->environment('local')) {
             Auth::login($admin);
             return redirect('/dashboard'); 
         }
-        return back();
+        return back()->with('error', 'Aucun compte admin trouvé. Lance le seeder !');
     })->name('dev.login');
 }
